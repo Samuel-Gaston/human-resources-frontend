@@ -35,16 +35,14 @@ type Personnel = {
   name:string;
 }
 
-type ValidatedBy = {
-  _id:number;
-  name:string;
-}
 
 
 const Leave = () => {
   const navigate = useNavigate();
 
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
+   
+  const [SelectedLeaveId, setSelectedLeaveId] = useState(null)
 
   const [deleteModal, setdeleteModal] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -56,14 +54,13 @@ const [isValidated, setisValidated] = useState("");
 const [description, setdescription] = useState("");
   const [selectedContract, setselectedContract] = useState("")
   const [selectedPersonnel, setselectedPersonnel] = useState("")
-  const [selectedValidatedBy, setselectedValidatedBy] = useState("");
 
-const [validatedBy, setvalidatedBy] = useState<ValidatedBy[]>([]);
   const [personnel, setpersonnel] = useState<Personnel[]>([])
   const [contract, setcontract] = useState<Contract[]>([]);
 
   const [Leaves, setLeaves] = useState<Leave[]>([])
 const [search, setsearch] = useState("")
+const [updateModal, setupdateModal] = useState(false)
 
     const Add = () =>{
       if(!durationInDays || !startDate || !endDate ){
@@ -75,7 +72,7 @@ const [search, setsearch] = useState("")
                 confirmButtonColor:'var(--color-gray-950)'
                 })
       }else{
-        axios.post("http://localhost:5000/leave", {durationInDays, contract:selectedContract,  description, startDate, endDate, isValidated, personnel:selectedPersonnel, validatedBy:selectedValidatedBy}).then(() =>{
+        axios.post("http://localhost:5000/leave", {durationInDays, contract:selectedContract,  description, startDate, endDate, isValidated, personnel:selectedPersonnel}).then(() =>{
           Swal.fire({
               title: 'Leave added successful!',
               text: 'You have successfully added this leave.',
@@ -84,29 +81,13 @@ const [search, setsearch] = useState("")
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/leave");
+                 getLeaves();
         }).catch((error) => console.error(error));
       }
     }
 
-          //getting ValidatedBY
-      const getValidatedBy = async() =>{
-     try {
-      const response = await axios.get("http://localhost:5000/leave/personnel");
-       console.log(response.data); 
-      setvalidatedBy(response.data)
-     } catch (error) {
-      console.error(error);
-     }
-    }
 
-    useEffect(() =>{
-      getValidatedBy();
-    },[]);
-
-    const handleValidatedBYChange = (e:any) =>{
-      setselectedValidatedBy(e.target.value);
-    }
 
      // getting contractTypes
     
@@ -222,6 +203,38 @@ const [search, setsearch] = useState("")
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (leave:any) =>{
+      setSelectedLeaveId(leave._id)
+      setdurationInDays(leave.durationInDays)
+      setstartDate(leave.startDate)
+      setendDate(leave.endDate)
+      setisValidated(leave.isValidated)
+      setdescription(leave.description)
+      setupdateModal(true)
+    }
+
+    const UpdateLeave = () =>{
+      axios.patch(`http://localhost:5000/leave/${SelectedLeaveId}`,{durationInDays, contract:selectedContract,  description, startDate, endDate, isValidated, personnel:selectedPersonnel}).then((res) =>{
+         Swal.fire({
+                            icon: "success",
+                            title: "Updated",
+                            text: res.data.msg,
+                            confirmButtonText: 'OK',
+                           confirmButtonColor:'var(--color-gray-950)'
+                          });
+                          setupdateModal(false)
+                          getLeaves();
+      }).catch((error) => {
+         Swal.fire({
+                            icon: "error",
+                            title: "Failed",
+                            text: error.res.data.msg,
+                            confirmButtonText: 'OK',
+                           confirmButtonColor:'var(--color-gray-950)'
+                          });
+      })
+    }
    
   return (
     <div>
@@ -302,12 +315,7 @@ const [search, setsearch] = useState("")
                  endDate
                 </div>
               </th>
-                 <th className="py-3 px-6 text-left font-semibold">
-                <div className="flex items-center gap-2" style={{marginLeft:30}}>
-                  {/* <FaBox />  */}
-                 validatedBy
-                </div>
-              </th>
+              
                  <th className="py-3 px-6 text-left font-semibold">
                 <div className="flex items-center gap-2" style={{marginLeft:30}}>
                   {/* <FaBox />  */}
@@ -335,13 +343,12 @@ const [search, setsearch] = useState("")
                 <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.durationInDays}</td>
                 <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.personnel?.name || '-'}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.contract?.description || '-'}</td>
-                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.startDate}</td>
+                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{(c.startDate)}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.endDate}</td>
-                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.validatedBy?.name || '-'}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.isValidated}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.description}</td>
                  <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">
-                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} />
+                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} onClick={() => OpenUpdateModal(c)} />
                   <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                               setSelectedUserId(c._id)
                                setdeleteModal(true)
@@ -524,7 +531,7 @@ const [search, setsearch] = useState("")
         Add New Leave
       </h3>
 
-      {/* Responsive grid: 1 column on small screens, 2 on md+ */}
+    
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
 
         <input
@@ -588,28 +595,6 @@ const [search, setsearch] = useState("")
             ))}
         </select>
 
-          <select
-          value={selectedValidatedBy}
-          onChange={handleValidatedBYChange}
-          style={{
-            padding: 5,
-            width: '100%',
-            border: '1px solid white',
-            borderRadius: 10,
-            textAlign: 'center',
-            backgroundColor: 'var(--color-gray-950)',
-            color: 'white',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">Select ValidatedBy</option>
-          {Array.isArray(validatedBy) &&
-            validatedBy.map((d) => (
-              <option key={d._id} value={d._id}>
-                {d.name}
-              </option>
-            ))}
-        </select>
 
         <input
           type="date"
@@ -776,6 +761,182 @@ const [search, setsearch] = useState("")
           </div>
         </div>
     )}
+
+          {/* Modal for add */}
+{updateModal && (
+  <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="relative bg-gray-950"
+         style={{ width: 'calc(70% - 10px)', borderRadius: 20, padding:20, boxShadow:'0 0 20px'}}
+    >
+      <h3 className="text-center" style={{ marginTop: 20, marginBottom: 20 }}>
+        Update Leave
+      </h3>
+
+   
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+
+        <input
+          type="number"
+          placeholder="Enter durationInDays"
+          value={durationInDays}
+          onChange={(e) => setdurationInDays(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <select
+          value={selectedContract}
+          onChange={handleContractChange}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">Select Contract</option>
+          {Array.isArray(contract) &&
+            contract.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.description}
+              </option>
+            ))}
+        </select>
+
+          <select
+          value={selectedPersonnel}
+          onChange={handlePersonnelChange}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">Select Personnel</option>
+          {Array.isArray(personnel) &&
+            personnel.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+
+        <input
+          type="date"
+          placeholder="Enter startDate"
+          value={startDate}
+          onChange={(e) => setstartDate(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <input
+          type="date"
+          placeholder="Enter endDate"
+          value={endDate}
+          onChange={(e) => setendDate(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <select
+          value={isValidated}
+          onChange={(e) => setisValidated(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">isValidated ?</option>
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Enter description"
+          value={description}
+          onChange={(e) => setdescription(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+      </div>
+<br />
+<br />
+     
+      <div className="flex justify-center mt-6 gap-4">
+        <button
+          type="button"
+          onClick={() => setupdateModal(false)}
+          style={{
+            backgroundColor: 'orange',
+            padding: 5,
+            width: '50%',
+            cursor: 'pointer',
+            borderRadius: 10,
+            color: 'black'
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={UpdateLeave}
+          style={{
+            backgroundColor: 'white',
+            cursor: 'pointer',
+            padding: 5,
+            width: '50%',
+            borderRadius: 10,
+            color: 'black'
+          }}
+        >
+          update
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
 
     </div>

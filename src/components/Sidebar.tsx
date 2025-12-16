@@ -12,7 +12,7 @@ import { FaTags } from "react-icons/fa";
 import { MdGavel } from "react-icons/md";
 import { MdLabel } from "react-icons/md";
 import { MdSecurity } from "react-icons/md";
-
+import Swal from 'sweetalert2';
 const Sidebar = () => {
     const navigate = useNavigate();
    
@@ -58,9 +58,24 @@ const Sidebar = () => {
      const GoToUser= () =>{
         navigate("/user");
     }
-    const Logout = () =>{
-        navigate("/");
+  
+    const confirmLogout = () => {
+  Swal.fire({
+    title: "Do you want to logout?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "var(--color-gray-800) "
+  }).then((result) => {
+    if (result.isConfirmed) {
+      navigate("/");
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      navigate("/dashboard");
     }
+  });
+};
   return (
     <div>   
      <ul>
@@ -80,7 +95,7 @@ const Sidebar = () => {
              <li onClick={GoToContractType}><MdCategory className='inline' /> Contract-Types</li>
           
          </ul>
-          <button onClick={Logout}>Logout</button>
+          <button onClick={confirmLogout}>Logout</button>
          </div>
   )
 }

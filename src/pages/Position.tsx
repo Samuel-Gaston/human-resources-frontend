@@ -24,6 +24,7 @@ type Position = {
 const Position = () => {
 const navigate = useNavigate();
 
+  const [SelectedPositionId, setSelectedPositionId] = useState(null)
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showExportModal, setshowExportModal] = useState(false);
@@ -39,6 +40,7 @@ const navigate = useNavigate();
     const [department, setdepartment] = useState<Department[]>([]);
   const [Positions, setPositions] = useState<Position[]>([])
   const [search, setsearch] = useState("")
+  const [updateModal, setupdateModal] = useState(false)
 
     const Add = () =>{
       if(!name || !type || !status || !selectedDepartment || !description){
@@ -59,7 +61,8 @@ const navigate = useNavigate();
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/position");
+                 getPositions();
         }).catch((error) => console.error(error));
       }
     }
@@ -155,6 +158,29 @@ const navigate = useNavigate();
     
       fetchUsers();
     }, [search]);
+
+  const OpenUpdateModal = (position:any) =>{
+    setSelectedPositionId(position._id);
+    setName(position.name)
+    settype(position.type)
+    setstatus(position.status)
+    setdescription(position.description)
+    setupdateModal(true)
+  }
+
+  const UpdatePosition = () =>{
+    axios.patch(`http://localhost:5000/position/${SelectedPositionId}`,{name, type, status, department:selectedDepartment, description}).then((res) =>{
+        Swal.fire({
+            icon: "success",
+            title: "Updated",
+            text: res.data.msg,
+            confirmButtonText: 'OK',
+           confirmButtonColor:'var(--color-gray-950)'
+          });
+          setupdateModal(false)
+          getPositions();
+    }).catch((error) => console.error(error));
+  }
    
   return (
     <div>
@@ -251,7 +277,7 @@ const navigate = useNavigate();
         <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.department?.name || '-'}</td>
           <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.description}</td>
           <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">
-            <FaEdit style={{cursor:'pointer'}} className='inline' size={20} />
+            <FaEdit style={{cursor:'pointer'}} className='inline' size={20} onClick={() => OpenUpdateModal(user)} />
             <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
              setSelectedUserId(user._id)
               setdeleteModal(true)
@@ -426,6 +452,105 @@ const navigate = useNavigate();
           </div>
         </div>
     )}
+
+    {/* update modal */}
+          {updateModal && (
+        <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(40% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update Position</h3>
+
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+              <br />
+              <br />
+             
+<select
+ value={type} 
+ onChange={(e) => settype(e.target.value)}
+   style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center', backgroundColor:'var(--color-gray-950)', color:'white', cursor:'pointer'}}>
+     <option value="">Type</option>
+  <option value='Contract'>Contract</option>
+   <option value='Internship'>Internship</option>
+    <option value='Part_Time'>Part_Time</option>
+     <option value='Full_Time'>Full_Time</option>
+</select>
+              <br />
+              <br />
+      
+<select
+ value={status} 
+ onChange={(e) => setstatus(e.target.value)}
+   style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center',backgroundColor:'var(--color-gray-950)', color:'white', cursor:'pointer'}}>
+     <option value="">Status</option>
+  <option style={{backgroundColor:'var(--color-gray-900)', color:'white', cursor:'pointer'}} className='hover:text-black' value='Open'>Open</option>
+   <option style={{backgroundColor:'var(--color-gray-900)', color:'white', cursor:'pointer'}} className='hover:text-black' value='OnHold'>OnHold</option>
+    <option style={{backgroundColor:'var(--color-gray-900)', color:'white', cursor:'pointer'}} className='hover:text-black' value='Filled'>Filled</option>
+</select>
+              <br />
+              <br />
+            <select
+  value={selectedDepartment}
+  onChange={handleDepartmentChange}
+  style={{
+    padding: 5,
+    width: 'calc(77% - 20px)',
+    border: '1px solid white',
+    marginLeft: 50,
+    borderRadius: 10,
+    textAlign: 'center',
+  backgroundColor:'var(--color-gray-950)', color:'white', cursor:'pointer'
+  }}
+>
+  <option value="">Select Department</option>
+
+  {Array.isArray(department) &&
+    department.map((d) => (
+      <option key={d._id} value={d._id}>
+        {d.name}
+      </option>
+    ))}
+</select>
+          <br />
+              <br />
+           <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={UpdatePosition} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
+
+          </div>
+        </div>
+      )}
     </div>
 
     </div>

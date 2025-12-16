@@ -51,7 +51,6 @@ useEffect(() => {
     <div style={{backgroundColor:'white'}}>
         <div className='dashboard bg-gray-900 flex h-screen overflow-hidden'>
 
-
 <div className="left-dashboard bg-gray-950 w-[250px] h-full overflow-y-auto no-scrollbar">
   <div style={{ marginLeft: 20 }} className="logo font-bold">
     <span style={{ fontSize: 50, color: 'orange' }}>H</span>
@@ -64,7 +63,7 @@ useEffect(() => {
 
  
         <div className='right-dashboard flex-1 h-full overflow-y-auto no-scrollbar'>
-      <p className='text-center text-3xl font-bold' style={{marginTop:10,}}><span className='text-5xl' style={{color:'orange'}}>H</span>uman Resources Management Statistics.</p>
+      <p className='text-center text-3xl font-bold' style={{marginTop:10,}}><span className='text-5xl' style={{color:'orange'}}>A</span>nalytic Statistics</p>
       <br />
       <div className='flex flex-wrap justify-center' style={{marginTop:30, gap:15}}>
 

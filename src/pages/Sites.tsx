@@ -14,7 +14,8 @@ type Sites = {
 }
 const Sites = () => {
   const navigate = useNavigate();
-
+   
+  const [SelectedSiteId, setSelectedSiteId] = useState(null);
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [deleteModal, setdeleteModal] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -25,6 +26,7 @@ const Sites = () => {
 
   const [Sites, setSites] = useState<Sites[]>([])
   const [search, setSearch] = useState("")
+  const [updateModal, setupdateModal] = useState(false);
 
     const Add = () =>{
       if(!name || !location || !description){
@@ -45,7 +47,8 @@ const Sites = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/site");
+                 getSites();
         }).catch((error) => console.error(error));
       }
     }
@@ -123,7 +126,46 @@ const Sites = () => {
     
       fetchSites();
     }, [search]);
+
+
+  const openUpdateModal = (site:any) => {
+  setSelectedSiteId(site._id);
+  setName(site.name);
+  setlocation(site.location);
+  setdescription(site.description);
+  setupdateModal(true);
+};
+
+   const UpdateSite = async () => {
+  if (!SelectedSiteId) return;
+
+  try {
+    const res = await axios.patch(
+      `http://localhost:5000/site/${SelectedSiteId}`,
+      {
+        name,
+        location,
+        description
+      }
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Updated",
+      text: res.data.msg,
+      confirmButtonText: 'OK',
+     confirmButtonColor:'var(--color-gray-950)'
+    });
+
+    setupdateModal(false);
+
    
+    getSites(); 
+  } catch (error) {
+   console.error(error);
+  }
+};
+
   return (
     <div>
         <div className='dashboard bg-gray-900 flex h-screen overflow-hidden'>
@@ -207,7 +249,7 @@ const Sites = () => {
           <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.location}</td>
           <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.description}</td>
           <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">
-            <FaEdit style={{cursor:'pointer'}} className='inline' size={20} />
+            <FaEdit style={{cursor:'pointer'}} className='inline' size={20}  onClick={() => openUpdateModal(user)} />
             <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
              setSelectedUserId(user._id)
               setdeleteModal(true)
@@ -339,6 +381,66 @@ const Sites = () => {
                     width:'calc(40% - 20px)',
                     borderRadius:5, color:'black'
                 }}>Yes</button>
+
+          </div>
+        </div>
+    )}
+
+    {/* the modal for update */}
+    {updateModal && (
+            <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(40% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update this Site</h3>
+
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+<br />
+<br />
+              <input
+                type="text"
+                placeholder="Enter location"
+                value={location}
+                onChange={(e) => setlocation(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={UpdateSite} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
 
           </div>
         </div>

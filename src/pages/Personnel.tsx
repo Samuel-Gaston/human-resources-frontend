@@ -41,6 +41,7 @@ type Personnel = {
 const Personnel = () => {
   const navigate = useNavigate();
   
+  const [SelectedPersonnelId, setSelectedPersonnelId] = useState(null)
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [deleteModal, setdeleteModal] = useState(false);
   const [showModal, setShowModal] = useState(false)
@@ -64,6 +65,7 @@ const Personnel = () => {
   const [Personnels, setPersonnels] = useState<Personnel[]>([]);
 
   const [search, setsearch] = useState("");
+  const [updateModal, setupdateModal] = useState(false)
 
 
       const Add = () =>{
@@ -85,7 +87,8 @@ const Personnel = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/personnel");
+                 getPersonnels();
                  console.log(res.data.data);
         }).catch((error) => console.error(error));
       }
@@ -202,6 +205,44 @@ const Personnel = () => {
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (personnel:any) =>{
+      setSelectedPersonnelId(personnel._id)
+      setname(personnel.name)
+      setemail(personnel.email)
+      setphone(personnel.phone)
+      setgender(personnel.gender);
+      setsalary(personnel.salary)
+      setmaritalStatus(personnel.maritalStatus)
+      setchildStatus(personnel.childStatus)
+      setisDrivingLicense(personnel.isDrivingLicense)
+      setrecrutementDate(personnel.recrutementDate)
+       setemploymentStatus(personnel.employmentStatus)
+       setemergencyContact(personnel.emergencyContact);
+   setupdateModal(true)
+    }
+
+    const UpdatePersonnel =() =>{
+      axios.patch(`http://localhost:5000/personnel/${SelectedPersonnelId}`,{name, gender, email, phone, salary, maritalStatus, childStatus, isDrivingLicense, recrutementDate, emergencyContact, employmentStatus, position:selectedPosition, cnps:selectedCNPS}).then((res) =>{
+           Swal.fire({
+                    icon: "success",
+                    title: "Updated",
+                    text: res.data.msg,
+                    confirmButtonText: 'OK',
+                   confirmButtonColor:'var(--color-gray-950)'
+                  });
+              setupdateModal(false)
+              getPersonnels();
+      }).catch((error) => {
+           Swal.fire({
+                    icon: "error",
+                    title: "Failed",
+                    text: error.res.data.msg,
+                    confirmButtonText: 'OK',
+                   confirmButtonColor:'var(--color-gray-950)'
+                  });
+      })
+    }
    
   return (
     <div>
@@ -355,7 +396,7 @@ const Personnel = () => {
                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.position?.name || '-'}</td>
                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.cnps?.name || '-'}</td>
                <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">
-                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} />
+                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} onClick={() => OpenUpdateModal(c)} />
                   <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                               setSelectedUserId(c._id)
                                setdeleteModal(true)
@@ -790,6 +831,143 @@ const Personnel = () => {
           </div>
         </div>
     )}
+
+
+          {/* Modal for add*/}
+{updateModal && (
+  <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div
+      className="relative bg-gray-950"
+      style={{ width: 'calc(70% - 20px)', borderRadius: 20, boxShadow: '0 0 20px' }}
+    >
+      <h3 className="text-center" style={{ marginTop: 20, marginBottom: 20 }}>
+        Update Personnel
+      </h3>
+
+    
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4">
+
+        <input type="text" placeholder="Enter Name" value={name}
+          onChange={(e) => setname(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <input type="text" placeholder="Enter gender" value={gender}
+          onChange={(e) => setgender(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <input type="email" placeholder="Enter email" value={email}
+          onChange={(e) => setemail(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <input type="number" placeholder="Enter phone" value={phone}
+          onChange={(e) => setphone(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <input type="number" placeholder="Enter salary" value={salary}
+          onChange={(e) => setsalary(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <select value={maritalStatus}
+          onChange={(e) => setmaritalStatus(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">maritalStatus ?</option>
+          <option value="single">single</option>
+          <option value="married">married</option>
+          <option value="divorced">divorced</option>
+          <option value="widowed">widowed</option>
+        </select>
+
+        <select value={childStatus}
+          onChange={(e) => setchildStatus(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">childStatus ?</option>
+          <option value="has_child">has_child</option>
+          <option value="no_child">no_child</option>
+        </select>
+
+        <select value={isDrivingLicense}
+          onChange={(e) => setisDrivingLicense(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">isDrivingLicense ?</option>
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+
+        <input type="date" placeholder="Enter recrutementDate" value={recrutementDate}
+          onChange={(e) => setrecrutementDate(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <select value={selectedCNPS}
+          onChange={handleCNPSChange}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">Select CNPS</option>
+          {Array.isArray(cnps) && cnps.map((d) => (
+            <option key={d._id} value={d._id}>{d.name}</option>
+          ))}
+        </select>
+
+        <select value={selectedPosition}
+          onChange={handlePositionChange}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">Select Position</option>
+          {Array.isArray(position) && position.map((p) => (
+            <option key={p._id} value={p._id}>{p.name}</option>
+          ))}
+        </select>
+
+        <input type="text" placeholder="Enter emergencyContact" value={emergencyContact}
+          onChange={(e) => setemergencyContact(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center' }}
+          required
+        />
+
+        <select value={employmentStatus}
+          onChange={(e) => setemploymentStatus(e.target.value)}
+          style={{ padding: 5, width: 'calc(90% - 20px)', border: '1px solid white', marginLeft:20, borderRadius: 10, textAlign: 'center', backgroundColor: 'var(--color-gray-950)', color: 'white', cursor: 'pointer' }}
+        >
+          <option value="">employmentStatus ?</option>
+          <option value="Active">Active</option>
+          <option value="Terminated">Terminated</option>
+          <option value="On_Leave">On_Leave</option>
+          <option value="Retired">Retired</option>
+        </select>
+
+      </div>
+
+      <br />
+
+      <div className='flex justify-center'>
+        <button type="button" onClick={() => setupdateModal(false)}
+        style={{ backgroundColor: 'orange', marginLeft:20, padding: 5, marginBottom: 20, width: 'calc(40% - 20px)', cursor: 'pointer', borderRadius: 10, color: 'black', height:34, marginTop:20 }}>
+        Cancel
+      </button>
+
+      <button onClick={UpdatePersonnel}
+        style={{ backgroundColor: 'white', cursor: 'pointer', marginLeft: 10, padding: 5, marginBottom: 50, marginTop: 20, width: 'calc(40% - 20px)', borderRadius: 10, color: 'black' }}>
+        update
+      </button>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
 
     </div>

@@ -15,6 +15,7 @@ type ContractType = {
 const ContractType = () => {
    const navigate = useNavigate();
 
+   const [SelectedContractTypeId, setSelectedContractTypeId] = useState(null)
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [deleteModal, setdeleteModal] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -26,6 +27,7 @@ const ContractType = () => {
   const [ContractTypes, setContractTypes] = useState<ContractType[]>([])
   const [search, setsearch] = useState("")
 
+  const [updateModal, setupdateModal] = useState(false)
 
     const Add = () =>{
       if(!name || !durationInMonth || !description){
@@ -46,7 +48,8 @@ const ContractType = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/contractType");
+                 getContractTypes();
         }).catch((error) => console.error(error));
       }
     }
@@ -125,6 +128,28 @@ const ContractType = () => {
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (contractType:any) => {
+      setSelectedContractTypeId(contractType._id)
+      setName(contractType.name)
+      setdurationInMonth(contractType.durationInMonth)
+      setdescription(contractType.description);
+      setupdateModal(true)
+    }
+
+    const updateContractType = () =>{
+      axios.patch(`http://localhost:5000/contractType/${SelectedContractTypeId}`,{name, durationInMonth, description}).then((res) =>{
+           Swal.fire({
+                              icon: "success",
+                              title: "Updated",
+                              text: res.data.msg,
+                              confirmButtonText: 'OK',
+                             confirmButtonColor:'var(--color-gray-950)'
+                            });
+        setupdateModal(false)
+         getContractTypes();
+      }).catch((error) => console.error(error));
+    }
     
   return (
     <div>
@@ -207,7 +232,7 @@ const ContractType = () => {
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.durationInMonth}</td>
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.description}</td>
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">
-                   <FaEdit style={{cursor:'pointer'}} className='inline' size={20} />
+                   <FaEdit style={{cursor:'pointer'}} className='inline' size={20} onClick={() => OpenUpdateModal(user)} />
                    <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                     setSelectedUserId(user._id)
                      setdeleteModal(true)
@@ -342,6 +367,67 @@ const ContractType = () => {
           </div>
         </div>
     )}
+
+    {/* the update modal */}
+          {/* Modal for add*/}
+      {updateModal && (
+        <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(40% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update Contract-Type</h3>
+
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+<br />
+<br />
+              <input
+                type="number"
+                placeholder="Enter durationInMonth"
+                value={durationInMonth}
+                onChange={(e) => setdurationInMonth(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={updateContractType} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
+
+          </div>
+        </div>
+      )}
     </div>
 
     </div>

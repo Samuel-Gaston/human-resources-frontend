@@ -22,6 +22,7 @@ type FineType = {
 const Fine = () => {
   const navigate = useNavigate();
 
+  const [SelectedFineId, setSelectedFineId] = useState(null)
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [deleteModal, setdeleteModal] = useState(false);
@@ -37,6 +38,7 @@ const Fine = () => {
 
   const [Fines, setFines] = useState<Fine[]>([])
   const [search, setsearch] = useState("")
+  const [updateModal, setupdateModal] = useState(false);
 
     const Add = () =>{
       if(!name || !date || !selectedFineType ){
@@ -57,7 +59,8 @@ const Fine = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/fine");
+                 getFines();
         }).catch((error) => console.error(error));
       }
     }
@@ -154,7 +157,47 @@ const Fine = () => {
     
       fetchUsers();
     }, [search]);
-   
+
+    const OpenUpdateModal = (fine:any)=>{
+      setSelectedFineId(fine._id)
+      setName(fine.name)
+      setdate(fine.date)
+      setdescription(fine.description)
+      // setfineType(fine.fineType);
+      setupdateModal(true);
+    }
+
+    const UpdateFine = () =>{
+      axios.patch(`http://localhost:5000/fine/${SelectedFineId}`,{name, date, description, fineType:selectedFineType}).then((res) =>{
+          Swal.fire({
+                            icon: "success",
+                            title: "Updated",
+                            text: res.data.msg,
+                            confirmButtonText: 'OK',
+                           confirmButtonColor:'var(--color-gray-950)'
+                          });
+                    setupdateModal(false)
+                    getFines();
+      }).catch((error) => console.error(error.response.data.msg))
+    }
+
+    function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    return "-"; 
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+
+  return date.toLocaleDateString("en-GB", options);
+}
+
+
   return (
     <div>
         <div className='dashboard bg-gray-900 flex h-screen overflow-hidden'>
@@ -239,11 +282,11 @@ const Fine = () => {
             {Array.isArray(Fines) && Fines.map((c, index) => (
               <tr key={c._id} className={`${ index % 2 === 0 ? "bg-gray-50" : "bg-white" } hover:bg-gray-300 transition-all duration-200`} >
                 <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.name}</td>
-                <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.date}</td>
+                <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{formatDate(c.date)}</td>
                    <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.fineType.name}</td>
                   <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.description}</td>
                 <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">
-                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} />
+                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} onClick={() => OpenUpdateModal(c)} />
                   <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                               setSelectedUserId(c._id)
                                setdeleteModal(true)
@@ -403,6 +446,91 @@ const Fine = () => {
           </div>
         </div>
     )}
+
+
+      {/* Modal for add*/}
+      {updateModal && (
+        <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(40% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update Fine</h3>
+
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+<br />
+<br />
+              <input
+                type="date"
+                placeholder="Enter date"
+                value={date}
+                onChange={(e) => setdate(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                          <select
+  value={selectedFineType}
+  onChange={handleFineTypeChange}
+  style={{
+    padding: 5,
+    width: 'calc(77% - 20px)',
+    border: '1px solid white',
+    marginLeft: 50,
+    borderRadius: 10,
+    textAlign: 'center',
+  backgroundColor:'var(--color-gray-950)', color:'white', cursor:'pointer'
+  }}
+>
+  <option value="">Select FineType</option>
+
+  {Array.isArray(fineType) &&
+    fineType.map((d) => (
+      <option key={d._id} value={d._id}>
+        {d.name}
+      </option>
+    ))}
+</select>
+<br />
+<br />
+              <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={UpdateFine} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
+
+          </div>
+        </div>
+      )}
     </div>
 
     </div>

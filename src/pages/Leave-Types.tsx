@@ -14,7 +14,7 @@ type LeaveType = {
 }
 const LeaveType = () => {
   const navigate = useNavigate();
-
+   const [SelectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null)
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [deleteModal, setdeleteModal] = useState(false)
@@ -25,6 +25,7 @@ const LeaveType = () => {
 
   const [LeaveTypes, setLeaveTypes] = useState<LeaveType[]>([])
   const [search, setsearch] = useState("")
+  const [updateModal, setupdateModal] = useState(false)
 
     const Add = () =>{
       if(!name || !durationInDay || !description){
@@ -45,7 +46,8 @@ const LeaveType = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/leaveType");
+                 getLeaveTypes();
         }).catch((error) => console.error(error));
       }
     }
@@ -124,6 +126,30 @@ const LeaveType = () => {
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (LeaveType:any) =>{
+      setSelectedLeaveTypeId(LeaveType._id)
+      setName(LeaveType.name)
+      setdurationInDay(LeaveType.durationInDay)
+      setdescription(LeaveType.description)
+      setupdateModal(true);
+    }
+
+    const updateLeaveType = () =>{
+      axios.patch(`http://localhost:5000/leaveType/${SelectedLeaveTypeId}`, {name, durationInDay, description}).then((res) =>{
+          Swal.fire({
+                      icon: "success",
+                      title: "Updated",
+                      text: res.data.msg,
+                      confirmButtonText: 'OK',
+                     confirmButtonColor:'var(--color-gray-950)'
+                    });
+          setupdateModal(false)
+          getLeaveTypes();
+      }).catch((error) => console.error(error.response.data.msg));
+    }
+
+
    
   return (
     <div>
@@ -208,7 +234,7 @@ const LeaveType = () => {
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.durationInDay}</td>
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.description}</td>
                  <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">
-                   <FaEdit style={{cursor:'pointer'}} className='inline' size={20} />
+                   <FaEdit style={{cursor:'pointer'}} className='inline' size={20} onClick={() => OpenUpdateModal(user)} />
                    <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                     setSelectedUserId(user._id)
                      setdeleteModal(true)
@@ -343,6 +369,66 @@ const LeaveType = () => {
           </div>
         </div>
     )}
+
+      {/* Modal for add*/}
+      {updateModal && (
+        <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(40% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update Leave-Type</h3>
+
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                required
+              />
+<br />
+<br />
+              <input
+                type="number"
+                placeholder="Enter durationInDay"
+                value={durationInDay}
+                onChange={(e) => setdurationInDay(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+               style={{padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={updateLeaveType} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
+
+          </div>
+        </div>
+      )}
     </div>
 
     </div>

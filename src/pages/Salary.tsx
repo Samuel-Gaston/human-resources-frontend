@@ -38,7 +38,7 @@ type ValidatedBy = {
 }
 const Salary = () => {
   const navigate = useNavigate();
-
+   const [SelectedSalaryId, setSelectedSalaryId] = useState(null);
   const [SelectedUserId, setSelectedUserId] = useState(null);
 
   const [deleteModal, setdeleteModal] = useState(false)
@@ -58,6 +58,7 @@ const Salary = () => {
    const [salaries, setsalaries] = useState<Salary[]>([]);
 
    const [search, setsearch] = useState("")
+   const [updateModal, setupdateModal] = useState(false)
 
       const Add = () =>{
       if(!Amount || !description){
@@ -78,7 +79,8 @@ const Salary = () => {
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/salary");
+                 getSalaries();
         }).catch((error) => console.error(error));
       }
     }
@@ -214,6 +216,29 @@ const Salary = () => {
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (salary:any) => {
+      setSelectedSalaryId(salary._id)
+      setAmount(salary.Amount)
+      setisValidated(salary.isValidated)
+      setdescription(salary.description)
+        setdate(salary.date)
+      setupdateModal(true);
+    }
+
+    const UpdateSalary = () =>{
+      axios.patch(`http://localhost:5000/salary/${SelectedSalaryId}`,{Amount, contract:selectedContract,  description, date, isValidated, personnel:selectedPersonnel, validatedBy:selectedValidatedBy}).then((res)=>{
+         Swal.fire({
+                    icon: "success",
+                    title: "Updated",
+                    text: res.data.msg,
+                    confirmButtonText: 'OK',
+                   confirmButtonColor:'var(--color-gray-950)'
+                  });
+                  setupdateModal(false)
+                getSalaries();
+      }).catch((error) => console.error(error.response.data.msg));
+    }
    
   return (
     <div>
@@ -324,7 +349,7 @@ const Salary = () => {
                  <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.date}</td>
                  <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">{c.description}</td>
                 <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">
-                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} />
+                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} onClick={() => OpenUpdateModal(c)} />
                   <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                               setSelectedUserId(c._id)
                                setdeleteModal(true)
@@ -550,6 +575,155 @@ const Salary = () => {
           </div>
         </div>
     )}
+
+          {/* Modal for add*/}
+      {updateModal && (
+        <div className="Add fixed inset-0 bg-black/50 flex items-center justify-center z-50" >
+          <div className="relative bg-gray-950" style={{width:'calc(70% - 20px)', borderRadius:20, boxShadow:'0 0 20px'}}>
+            <h3 className="text-center" style={{marginTop:20, marginBottom:20}}>Update Salary</h3>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
+              <input
+                type="number"
+                placeholder="Enter amount"
+                value={Amount}
+                onChange={(e) => setAmount(e.target.value)}
+                style={{padding:5, width:'calc(95% - 20px)', border:'1px solid white', marginLeft:20, borderRadius:10, textAlign:'center'}}
+                required
+              />
+            
+                   <select
+          value={selectedContract}
+          onChange={handleContractChange}
+          style={{
+            padding: 5,
+            width: 'calc(95% - 20px)',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer',marginLeft:20,
+          }}
+        >
+          <option value="">Select Contract</option>
+          {Array.isArray(contract) &&
+            contract.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.description}
+              </option>
+            ))}
+        </select>
+             
+           <select
+          value={selectedPersonnel}
+          onChange={handlePersonnelChange}
+          style={{
+            padding: 5,
+            width: 'calc(95% - 20px)',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer', marginLeft:20
+          }}
+        >
+          <option value="">Select Personnel</option>
+          {Array.isArray(personnel) &&
+            personnel.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+           
+          <select
+          value={selectedValidatedBy}
+          onChange={handleValidatedByChange}
+          style={{
+            padding: 5,
+            width: 'calc(95% - 20px)',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer', marginLeft:20
+          }}
+        >
+          <option value="">Select ValidatedBy</option>
+          {Array.isArray(validatedBy) &&
+            validatedBy.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+            
+                 <input
+                type="date"
+                placeholder="Enter date"
+                value={date}
+                onChange={(e) => setdate(e.target.value)}
+               style={{padding:5, width:'calc(95% - 20px)', border:'1px solid white', marginLeft:20, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+            
+
+               <select
+          value={isValidated}
+          onChange={(e) => setisValidated(e.target.value)}
+          style={{
+            padding: 5,
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer',width:'calc(95% - 20px)', border:'1px solid white', marginLeft:20,
+          }}
+        >
+          <option value="">isValidated ?</option>
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+     
+                 <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setdescription(e.target.value)}
+               style={{padding:5, width:'calc(95% - 20px)', border:'1px solid white', marginLeft:20, borderRadius:10, textAlign:'center'}}
+                 required
+              />
+              </div>
+              <br />
+              <br />
+                <button  type="button" onClick={() => setupdateModal(false)} style={{
+                    backgroundColor:'orange',
+                    marginLeft:50,
+                    padding:5,
+                    marginBottom:20,
+                    width:'calc(40% - 20px)',
+                    cursor:'pointer',
+                    borderRadius:10, color:'black'
+                }}>Cancel</button>
+                <button onClick={UpdateSalary} style={{
+                      backgroundColor:'white',
+                      cursor:'pointer',
+                    marginLeft:10,
+                    padding:5,
+                    marginBottom:50,
+                    marginTop:20,
+                    width:'calc(40% - 20px)',
+                    borderRadius:10, color:'black'
+                }}>update</button>
+
+
+
+
+          </div>
+        </div>
+      )}
     </div>
 
     </div>

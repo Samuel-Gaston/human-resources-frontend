@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './Layout/Layout.tsx';
 import Home from './pages/Home.tsx';
 import Login from './pages/Login.tsx';
@@ -22,7 +22,6 @@ axios.defaults.withCredentials=true;
 axios.defaults.baseURL="http://localhost:5000";
 function App() {
  
-
   return (
     <>
     <BrowserRouter>

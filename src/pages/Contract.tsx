@@ -39,10 +39,6 @@ type Personnel = {
   name:string;
 }
 
-type ValidatedBy = {
-  _id:number;
-  name:string;
-}
 
 type Position = {
   _id:number,
@@ -51,10 +47,12 @@ type Position = {
 const Contract = () => {
   const navigate = useNavigate();
 
+  const [SelectedContractId, setSelectedContractId] = useState(null);
   const [SelectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [deleteModal, setdeleteModal] = useState(false)
   const [showExportModal, setshowExportModal] = useState(false);
+
   const [salary, setsalary] = useState("");
   const [startDate, setstartDate] = useState("");
   const [endDate, setendDate] = useState("");
@@ -62,18 +60,17 @@ const Contract = () => {
   const [description, setdescription] = useState("");
 
   const [personnel, setpersonnel] = useState<Personnel[]>([])
-  const [validatedBy, setvalidatedBy] = useState<ValidatedBy[]>([]);
 
   const [position, setposition] = useState<Position[]>([])
  const [contractType, setcontractType] = useState<ContractType[]>([]);
 
 const [selectedContractType, setselectedContractType] = useState('');
 const [selectedPersonnel, setselectedPersonnel] = useState('');
-const [selectedValidatedBy, setselectedValidatedBy] = useState('');
 const [selectedPosition, setselectedPosition] = useState('')
 
      const [Contracts, setContracts] = useState<Contract[]>([])
      const [search, setsearch] = useState("")
+     const [updateModal, setupdateModal] = useState(false)
      
 
    const Add = () =>{
@@ -86,7 +83,7 @@ const [selectedPosition, setselectedPosition] = useState('')
                 confirmButtonColor:'var(--color-gray-950)'
                 })
       }else{
-        axios.post("http://localhost:5000/contract", {salary, contractType:selectedContractType,  description, startDate, endDate, isValidated, position:selectedPosition, personnel:selectedPersonnel, validatedBy:selectedValidatedBy}).then(() =>{
+        axios.post("http://localhost:5000/contract", {salary, contractType:selectedContractType,  description, startDate, endDate, isValidated, position:selectedPosition, personnel:selectedPersonnel}).then(() =>{
           Swal.fire({
               title: 'Contract added successful!',
               text: 'You have successfully added this contract.',
@@ -95,7 +92,8 @@ const [selectedPosition, setselectedPosition] = useState('')
                 confirmButtonColor:'var(--color-gray-950)'
                 })
                  setShowModal(false);
-                 navigate("/dashboard");
+                 navigate("/contract");
+                 getContracts();
         }).catch((error) => console.error(error));
       }
     }
@@ -119,24 +117,7 @@ const [selectedPosition, setselectedPosition] = useState('')
       setselectedContractType(e.target.value);
     }
 
-        //getting ValidatedBY
-      const getValidatedBy = async() =>{
-     try {
-      const response = await axios.get("http://localhost:5000/contract/personnel");
-       console.log(response.data); 
-      setvalidatedBy(response.data)
-     } catch (error) {
-      console.error(error);
-     }
-    }
 
-    useEffect(() =>{
-      getValidatedBy();
-    },[]);
-
-    const handleValidatedBYChange = (e:any) =>{
-      setselectedValidatedBy(e.target.value);
-    }
 
     //getting position
       const getPosition = async() =>{
@@ -254,6 +235,30 @@ const [selectedPosition, setselectedPosition] = useState('')
     
       fetchUsers();
     }, [search]);
+
+    const OpenUpdateModal = (contract:any) =>{
+    setSelectedContractId(contract._id);
+    setsalary(contract.salary)
+    setstartDate(contract.startDate)
+    setendDate(contract.endDate)
+    setisValidated(contract.isValidated)
+    setdescription(contract.description)
+    setupdateModal(true)
+  }
+
+  const UpdateContract = () =>{
+    axios.patch(`http://localhost:5000/contract/${SelectedContractId}`,{salary, contractType:selectedContractType,  description, startDate, endDate, isValidated, position:selectedPosition, personnel:selectedPersonnel}).then((res) =>{
+        Swal.fire({
+            icon: "success",
+            title: "Updated",
+            text: res.data.msg,
+            confirmButtonText: 'OK',
+           confirmButtonColor:'var(--color-gray-950)'
+          });
+          setupdateModal(false)
+          getContracts();
+    }).catch((error) => console.error(error));
+  }
    
    
   return (
@@ -342,12 +347,6 @@ const [selectedPosition, setselectedPosition] = useState('')
                  <th className="py-3 px-6 text-left font-semibold">
                 <div className="flex items-center gap-2" style={{marginLeft:30}}>
                   {/* <FaBox />  */}
-                 validatedBy
-                </div>
-              </th>
-                 <th className="py-3 px-6 text-left font-semibold">
-                <div className="flex items-center gap-2" style={{marginLeft:30}}>
-                  {/* <FaBox />  */}
                  isValidated
                 </div>
               </th>
@@ -375,11 +374,10 @@ const [selectedPosition, setselectedPosition] = useState('')
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.position?.name || '-'}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.startDate}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.endDate}</td>
-                   <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.validatedBy?.name || '-'}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.isValidated}</td>
                    <td  style={{padding:10, textAlign:'center'}}  className="py-3 px-6 text-gray-700">{c.description}</td>
                    <td  style={{padding:10}}  className="py-3 px-6 text-gray-700">
-                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} />
+                  <FaEdit style={{cursor:'pointer', marginLeft:10}} className='inline' size={20} onClick={() => OpenUpdateModal(c)} />
                   <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
                               setSelectedUserId(c._id)
                                setdeleteModal(true)
@@ -726,29 +724,6 @@ const [selectedPosition, setselectedPosition] = useState('')
         </select>
 
 
-               <select
-          value={selectedValidatedBy}
-          onChange={handleValidatedBYChange}
-          style={{
-            padding: 5,
-            width: '100%',
-            border: '1px solid white',
-            borderRadius: 10,
-            textAlign: 'center',
-            backgroundColor: 'var(--color-gray-950)',
-            color: 'white',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">Select ValidatedBy</option>
-          {Array.isArray(validatedBy) &&
-            validatedBy.map((d) => (
-              <option key={d._id} value={d._id}>
-                {d.name}
-              </option>
-            ))}
-        </select>
-
         <input
           type="text"
           placeholder="Enter description"
@@ -866,6 +841,207 @@ const [selectedPosition, setselectedPosition] = useState('')
           </div>
         </div>
     )}
+
+            {/* Modal for update */}
+{updateModal && (
+  <div className="Add fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4 border-white">
+    <div
+      className="relative bg-gray-950 border-white"
+      style={{ width: 'calc(70% - 10px)', borderRadius: 20, padding:20, boxShadow:'0 0 20px'}}
+    >
+      <h3 className="text-center" style={{ marginTop: 20, marginBottom: 20 }}>
+        Update Contract
+      </h3>
+
+    
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4" > 
+
+        <input
+          type="number"
+          placeholder="Enter salary"
+          value={salary}
+          onChange={(e) => setsalary(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <select
+          value={selectedContractType}
+          onChange={handleContractTypeChange}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">Select Contract-Type</option>
+          {Array.isArray(contractType) &&
+            contractType.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+
+        <input
+          type="date"
+          placeholder="Enter startDate"
+          value={startDate}
+          onChange={(e) => setstartDate(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <input
+          type="date"
+          placeholder="Enter endDate"
+          value={endDate}
+          onChange={(e) => setendDate(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+        <select
+          value={selectedPosition}
+          onChange={handlePositionChange}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">Select Position</option>
+          {Array.isArray(position) &&
+            position.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+
+        <select
+          value={isValidated}
+          onChange={(e) => setisValidated(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">isValidated ?</option>
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+
+               <select
+          value={selectedPersonnel}
+          onChange={handlePersonnelChange}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center',
+            backgroundColor: 'var(--color-gray-950)',
+            color: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">Select Personnel</option>
+          {Array.isArray(personnel) &&
+            personnel.map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+
+
+        <input
+          type="text"
+          placeholder="Enter description"
+          value={description}
+          onChange={(e) => setdescription(e.target.value)}
+          style={{
+            padding: 5,
+            width: '100%',
+            border: '1px solid white',
+            borderRadius: 10,
+            textAlign: 'center'
+          }}
+          required
+        />
+
+      </div>
+<br />
+<br />
+     
+      <div className="flex justify-center mt-6 gap-4">
+        <button
+          type="button"
+          onClick={() => setupdateModal(false)}
+          style={{
+            backgroundColor: 'orange',
+            padding: 5,
+            width: '40%',
+            cursor: 'pointer',
+            borderRadius: 10,
+            color: 'black'
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={UpdateContract}
+          style={{
+            backgroundColor: 'white',
+            cursor: 'pointer',
+            padding: 5,
+            width: '40%',
+            borderRadius: 10,
+            color: 'black'
+          }}
+        >
+          update
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+    
     </div>
 
     </div>

@@ -8,8 +8,8 @@
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE & Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;    
 }
 
 body{
@@ -98,15 +98,20 @@ body{
     width: calc(30% - 20px);
     border-bottom-left-radius: 50px;
     border-top-right-radius: 50px;
+    cursor: pointer;
 }
 .two{
        /* border: 1px solid white; */
        box-shadow: 0 0 20px;
   height: 150px;
+  cursor: pointer;
     width: calc(30% - 20px);
     margin-top: 60px;
        border-bottom-left-radius: 50px;
     border-top-right-radius: 50px;
+}
+.one:hover,.two:hover,.three:hover{
+    box-shadow: 0 0 30px;
 }
 .footer{
     margin-top: 80px;
@@ -264,6 +269,7 @@ label{
     border: 2px solid orange;
     transition: 0.5s all ease-in-out;
 }
+
 @media only screen and (max-width:764px) {
     .Nav{
         width: calc(100%);

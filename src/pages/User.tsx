@@ -3,7 +3,6 @@ import Sidebar from '../components/Sidebar';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaTrash } from "react-icons/fa";
-import { FaEdit } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 type User = {
@@ -27,6 +26,7 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     email:'',
     password:'',
   })
+ 
 
   const HandleData = (e:any) =>{
     setRegister((prev) => ({...prev, [e.target.name]: e.target.value.toLowerCase()}));
@@ -52,8 +52,8 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
         confirmButtonColor:'var(--color-gray-950)'
         })
          setShowModal(false);
-         navigate("/dashboard");
-        //  refresh();
+         navigate("/user");
+       getUsers();
         }).catch((error) => console.error("error", error));
       }
      }
@@ -89,6 +89,9 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
         })
       })
     }
+
+
+
 
     const exportUsersPDF = async () => {
   try {
@@ -225,7 +228,7 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
       <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.email}</td>
       <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">{user.password}</td>
       <td style={{ padding: 10 }} className="py-3 px-6 text-gray-700">
-        <FaEdit style={{cursor:'pointer'}} className='inline' size={20} />
+        {/* <FaEdit style={{cursor:'pointer'}} className='inline' size={20} onClick={() => handleEdit(user)}/> */}
         <FaTrash style={{cursor:'pointer', marginLeft:10}} className='inline' onClick={() => {
          setSelectedUserId(user._id)
           setdeleteModal(true)
@@ -291,8 +294,7 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
                     marginTop:20,
                     width:'calc(40% - 20px)',
                     borderRadius:10, color:'black'
-                }}>Add</button>
-
+                }}>submit</button>
           </div>
         </div>
       )}
@@ -361,6 +363,57 @@ const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
           </div>
         </div>
     )}
+
+
+    {/* {showModal &&(
+      <div>
+        <input
+  type="text"
+  name="name"
+  value={Register.name}
+  onChange={HandleData}
+  placeholder="Enter name"
+  style={{ padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center' }}
+/>
+
+<input
+  type="text"
+  name="email"
+  value={Register.email}
+  onChange={HandleData}
+  placeholder="Enter email"
+  style={{ padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center' }}
+/>
+
+<input
+  type="text"
+  name="password"
+  value={Register.password}
+  onChange={HandleData}
+  placeholder="Enter password"
+  style={{ padding:5, width:'calc(77% - 20px)', border:'1px solid white', marginLeft:50, borderRadius:10, textAlign:'center' }}
+/>
+
+<button
+  onClick={() => updateUser}
+  style={{
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    marginLeft: 10,
+    padding: 5,
+    marginBottom: 50,
+    marginTop: 20,
+    width: 'calc(40% - 20px)',
+    borderRadius: 10,
+    color: 'black',
+  }}
+>
+  Submit
+</button>
+
+
+      </div>
+    )} */}
     </div>
 
     </div>
